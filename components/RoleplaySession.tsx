@@ -44,18 +44,8 @@ export function RoleplaySession({ session, onEndSession, onUpdateSession }: Role
   }, [])
 
   const connectToRoom = async () => {
-    console.log('CONNECT BUTTON CLICKED!')
-    alert('CONNECT BUTTON CLICKED!')
-    
     try {
-      console.log('Starting connectToRoom function')
-      alert('Starting connectToRoom function')
-      console.log('Attempting to connect to room...')
-      console.log('Current URL:', window.location.href)
-      console.log('About to make fetch request...')
-      
       // First, get a token from our API
-      console.log('About to call token API...')
       const tokenResponse = await fetch('/api/token', {
         method: 'POST',
         headers: {
@@ -67,22 +57,14 @@ export function RoleplaySession({ session, onEndSession, onUpdateSession }: Role
         })
       })
 
-      console.log('Token response status:', tokenResponse.status)
-      console.log('Token response headers:', Object.fromEntries(tokenResponse.headers.entries()))
-
       if (!tokenResponse.ok) {
         const errorText = await tokenResponse.text()
         console.error('Token API error:', errorText)
-        alert(`Token API Error: ${errorText}`)
         throw new Error(`Failed to get token: ${errorText}`)
       }
 
       const responseData = await tokenResponse.json()
-      console.log('Token API response:', responseData)
-      
       const { token, url } = responseData
-      console.log('Got token, connecting to:', url)
-      console.log('Token length:', token ? token.length : 'undefined')
 
       const newRoom = new Room({
         adaptiveStream: true,
@@ -120,7 +102,7 @@ export function RoleplaySession({ session, onEndSession, onUpdateSession }: Role
     } catch (error) {
       console.error('Failed to connect to room:', error)
       const errorMessage = error instanceof Error ? error.message : String(error)
-      alert(`Connection failed: ${errorMessage}`)
+      console.error(`Connection failed: ${errorMessage}`)
     }
   }
 

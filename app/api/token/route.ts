@@ -26,7 +26,10 @@ export async function POST(request: NextRequest) {
       hasApiKey: !!apiKey,
       hasApiSecret: !!apiSecret,
       hasUrl: !!livekitUrl,
-      url: livekitUrl
+      url: livekitUrl,
+      apiKeyValue: apiKey,
+      apiSecretValue: apiSecret,
+      livekitUrlValue: livekitUrl
     })
 
     if (!apiKey || !apiSecret || !livekitUrl) {
@@ -49,6 +52,8 @@ export async function POST(request: NextRequest) {
     })
 
     const jwt = await token.toJwt()
+    console.log('Generated JWT:', jwt)
+    console.log('JWT length:', jwt.length)
     return NextResponse.json({ token: jwt, url: livekitUrl })
   } catch (error) {
     console.error('Error generating token:', error)
