@@ -116,7 +116,8 @@ export function RoleplaySession({ session, onEndSession, onUpdateSession }: Role
       roomRef.current = newRoom
     } catch (error) {
       console.error('Failed to connect to room:', error)
-      alert(`Connection failed: ${error.message}`)
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      alert(`Connection failed: ${errorMessage}`)
     }
   }
 
