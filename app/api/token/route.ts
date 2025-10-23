@@ -1,3 +1,6 @@
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 import { NextRequest, NextResponse } from 'next/server'
 import { AccessToken } from 'livekit-server-sdk'
 
@@ -36,7 +39,6 @@ export async function POST(request: NextRequest) {
 
     const token = new AccessToken(apiKey, apiSecret, {
       identity: participantName,
-      ttl: '1h',
     })
 
     token.addGrant({
@@ -47,11 +49,7 @@ export async function POST(request: NextRequest) {
     })
 
     const jwt = await token.toJwt()
-
-    return NextResponse.json({
-      token: jwt,
-      url: livekitUrl,
-    })
+    return NextResponse.json({ token: jwt, url: livekitUrl })
   } catch (error) {
     console.error('Error generating token:', error)
     return NextResponse.json(
