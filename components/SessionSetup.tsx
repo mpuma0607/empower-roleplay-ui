@@ -55,11 +55,10 @@ export function SessionSetup({ onStartSession, sessionHistory }: SessionSetupPro
             <h3 className="text-lg font-semibold mb-4">Ready to Practice?</h3>
             <button
               onClick={handleStartSession}
-              disabled={!selectedScenario && !customScenario}
-              className="w-full bg-primary-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+              className="w-full bg-primary-600 text-white py-4 px-6 rounded-lg font-medium hover:bg-primary-700 flex items-center justify-center space-x-2 text-lg"
             >
-              <Play className="h-5 w-5" />
-              <span>Start Session</span>
+              <Play className="h-6 w-6" />
+              <span>Start Roleplay Session</span>
             </button>
             <p className="text-xs text-gray-500 mt-2 text-center">
               Session will be recorded and analyzed
