@@ -48,6 +48,8 @@ export function RoleplaySession({ session, onEndSession, onUpdateSession }: Role
     alert('CONNECT BUTTON CLICKED!')
     try {
       console.log('Attempting to connect to room...')
+      console.log('Current URL:', window.location.href)
+      console.log('About to make fetch request...')
       
       // First, get a token from our API
       console.log('About to call token API...')
@@ -114,6 +116,7 @@ export function RoleplaySession({ session, onEndSession, onUpdateSession }: Role
       roomRef.current = newRoom
     } catch (error) {
       console.error('Failed to connect to room:', error)
+      alert(`Connection failed: ${error.message}`)
     }
   }
 
