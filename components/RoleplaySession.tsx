@@ -28,9 +28,7 @@ export function RoleplaySession({ session, onEndSession, onUpdateSession }: Role
   const roomRef = useRef<Room | null>(null)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
-  // LiveKit connection details
-  const livekitUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL || 'wss://empower-ai-role-play-tgm3k38l.livekit.cloud'
-  const token = process.env.NEXT_PUBLIC_LIVEKIT_TOKEN || ''
+  // LiveKit connection details - we'll get these from the token API
 
   useEffect(() => {
     // Start session timer
