@@ -47,6 +47,24 @@ export function RoleplaySession({ session, onEndSession, onUpdateSession }: Role
 
   const connectToRoom = async () => {
     try {
+      // First, get a token from our API
+      const tokenResponse = await fetch('/api/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          roomName: 'roleplay-session',
+          participantName: 'agent'
+        })
+      })
+
+      if (!tokenResponse.ok) {
+        throw new Error('Failed to get token')
+      }
+
+      const { token, url } = await tokenResponse.json()
+
       const newRoom = new Room({
         adaptiveStream: true,
         dynacast: true,
@@ -76,8 +94,8 @@ export function RoleplaySession({ session, onEndSession, onUpdateSession }: Role
         }
       })
 
-      // Connect to the room
-      await newRoom.connect(livekitUrl, token)
+      // Connect to the room with the token
+      await newRoom.connect(url, token)
       setRoom(newRoom)
       roomRef.current = newRoom
     } catch (error) {
