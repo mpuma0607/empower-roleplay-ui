@@ -27,7 +27,6 @@ export function RoleplaySession({ session, onEndSession, onUpdateSession }: Role
   
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
-  // unique identity per session to avoid "identity already exists"
   const identity = useMemo(
     () => `agent-${Math.random().toString(36).slice(2, 8)}`,
     []
@@ -59,14 +58,10 @@ export function RoleplaySession({ session, onEndSession, onUpdateSession }: Role
           body: JSON.stringify({ roomName: 'roleplay-session', participantName: identity }),
         })
         const data = await r.json() // parse ONCE
-        console.log('lk api result', {
-          tokenPrefix: data?.token?.slice(0, 20),
-          url: data?.url,
-        })
+        console.log('token prefix:', data?.token?.slice(0, 20), 'url:', data?.url)
         if (!r.ok) throw new Error(data?.error || `token api ${r.status}`)
         if (!data?.token || !data?.url) throw new Error('Empty token/url from API')
-        if (cancelled) return
-        setConn({ token: data.token, url: data.url })
+        if (!cancelled) setConn({ token: data.token, url: data.url })
       } catch (e: any) {
         if (!cancelled) setErr(e?.message ?? 'Failed to fetch token')
         console.error('token fetch failed', e)
@@ -146,7 +141,6 @@ export function RoleplaySession({ session, onEndSession, onUpdateSession }: Role
     }
   }, [isConnected, currentTranscript])
 
-  // SAFETY: never render LiveKitRoom with empty token/url
   if (err) return <div className="p-4 text-red-600">Connection error: {err}</div>
   if (!conn) return <div className="p-4 text-gray-500">Preparing connection…</div>
 
