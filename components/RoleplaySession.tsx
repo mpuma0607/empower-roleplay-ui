@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useEffect, useMemo, useState, useRef } from 'react'
 import { Mic, MicOff, Square, Volume2, VolumeX, RotateCcw } from 'lucide-react'
 import { SessionData } from '@/app/page'
 import { LiveKitRoom } from '@livekit/components-react'
@@ -15,6 +15,8 @@ interface RoleplaySessionProps {
 }
 
 export function RoleplaySession({ session, onEndSession, onUpdateSession }: RoleplaySessionProps) {
+  const [conn, setConn] = useState<{ token: string; url: string } | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const [isConnected, setIsConnected] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
   const [isClientMuted, setIsClientMuted] = useState(false)
@@ -24,6 +26,12 @@ export function RoleplaySession({ session, onEndSession, onUpdateSession }: Role
   const [sessionTime, setSessionTime] = useState(0)
   
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
+
+  // unique identity each time to avoid "identity already exists"
+  const identity = useMemo(
+    () => `agent-${Math.random().toString(36).slice(2, 8)}`,
+    []
+  )
 
   useEffect(() => {
     // Start session timer
@@ -38,24 +46,35 @@ export function RoleplaySession({ session, onEndSession, onUpdateSession }: Role
     }
   }, [])
 
-  const tokenFetcher = useCallback(async () => {
-    // Give each participant a unique identity to avoid "identity already exists"
-    const participantName = `agent-${Math.random().toString(36).slice(2, 8)}`;
+  useEffect(() => {
+    let cancelled = false
 
-    const r = await fetch('/api/token', {
-      method: 'POST',
-      cache: 'no-store',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ roomName: 'roleplay-session', participantName }),
-    });
-    if (!r.ok) {
-      const error = await r.json().catch(() => ({}));
-      throw new Error(`token api ${r.status}: ${error?.error ?? 'unknown error'}`);
+    ;(async () => {
+      setError(null)
+      setConn(null)
+      try {
+        const r = await fetch('/api/token', {
+          method: 'POST',
+          cache: 'no-store',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ roomName: 'roleplay-session', participantName: identity }),
+        })
+        if (!r.ok) {
+          const e = await r.json().catch(() => ({}))
+          throw new Error(`token api ${r.status}: ${e?.error ?? 'unknown'}`)
+        }
+        const { token, url } = (await r.json()) as { token: string; url: string }
+        if (!cancelled) setConn({ token, url })
+      } catch (e: any) {
+        if (!cancelled) setError(e?.message ?? 'Failed to fetch token')
+        console.error('token fetch failed', e)
+      }
+    })()
+
+    return () => {
+      cancelled = true
     }
-    const { token, url } = await r.json();
-    if (!token || !url) throw new Error('Missing token or url from api');
-    return { token, wsUrl: url };
-  }, []);
+  }, [identity])
 
   const toggleMute = () => {
     setIsMuted(!isMuted)
@@ -126,11 +145,17 @@ export function RoleplaySession({ session, onEndSession, onUpdateSession }: Role
     }
   }, [isConnected, currentTranscript])
 
+  if (error) {
+    return <div className="p-4 text-red-600">Connection error: {error}</div>
+  }
+  if (!conn) {
+    return <div className="p-4 text-gray-500">Preparing connection…</div>
+  }
+
   return (
     <LiveKitRoom
-      token={undefined}
-      serverUrl={undefined}
-      tokenFetcher={tokenFetcher}
+      token={conn.token}
+      serverUrl={conn.url}
       connect
       audio
       video={false}
@@ -143,7 +168,7 @@ export function RoleplaySession({ session, onEndSession, onUpdateSession }: Role
         setIsConnected(false)
       }}
       onError={(e) => console.error('LiveKit error', e)}
-      className="h-screen"
+      className="h-full w-full"
     >
       <div className="max-w-7xl mx-auto">
         {/* Session Header */}
