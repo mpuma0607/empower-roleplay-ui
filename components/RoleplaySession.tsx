@@ -47,6 +47,8 @@ export function RoleplaySession({ session, onEndSession, onUpdateSession }: Role
 
   const connectToRoom = async () => {
     try {
+      console.log('Attempting to connect to room...')
+      
       // First, get a token from our API
       const tokenResponse = await fetch('/api/token', {
         method: 'POST',
@@ -59,11 +61,16 @@ export function RoleplaySession({ session, onEndSession, onUpdateSession }: Role
         })
       })
 
+      console.log('Token response status:', tokenResponse.status)
+
       if (!tokenResponse.ok) {
-        throw new Error('Failed to get token')
+        const errorText = await tokenResponse.text()
+        console.error('Token API error:', errorText)
+        throw new Error(`Failed to get token: ${errorText}`)
       }
 
       const { token, url } = await tokenResponse.json()
+      console.log('Got token, connecting to:', url)
 
       const newRoom = new Room({
         adaptiveStream: true,

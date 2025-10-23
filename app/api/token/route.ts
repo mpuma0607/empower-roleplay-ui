@@ -3,9 +3,12 @@ import { AccessToken } from 'livekit-server-sdk'
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('Token API called')
     const { roomName, participantName } = await request.json()
+    console.log('Request data:', { roomName, participantName })
 
     if (!roomName || !participantName) {
+      console.log('Missing room name or participant name')
       return NextResponse.json(
         { error: 'Room name and participant name are required' },
         { status: 400 }
@@ -16,7 +19,15 @@ export async function POST(request: NextRequest) {
     const apiSecret = process.env.LIVEKIT_API_SECRET
     const livekitUrl = process.env.LIVEKIT_URL || process.env.NEXT_PUBLIC_LIVEKIT_URL
 
+    console.log('Environment check:', {
+      hasApiKey: !!apiKey,
+      hasApiSecret: !!apiSecret,
+      hasUrl: !!livekitUrl,
+      url: livekitUrl
+    })
+
     if (!apiKey || !apiSecret || !livekitUrl) {
+      console.log('Missing environment variables')
       return NextResponse.json(
         { error: 'LiveKit configuration missing' },
         { status: 500 }
