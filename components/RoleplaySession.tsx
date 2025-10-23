@@ -45,6 +45,7 @@ export function RoleplaySession({ session, onEndSession, onUpdateSession }: Role
 
   const connectToRoom = async () => {
     console.log('CONNECT BUTTON CLICKED!')
+    alert('CONNECT BUTTON CLICKED!')
     try {
       console.log('Attempting to connect to room...')
       
