@@ -58,7 +58,7 @@ export function RoleplaySession({ session, onEndSession, onUpdateSession }: Role
           body: JSON.stringify({ roomName: 'roleplay-session', participantName: identity }),
         })
         const data = await r.json() // parse ONCE
-        console.log('token prefix:', data?.token?.slice(0, 20), 'url:', data?.url)
+        console.log('LK token prefix:', data?.token?.slice(0, 20), 'url:', data?.url)
         if (!r.ok) throw new Error(data?.error || `token api ${r.status}`)
         if (!data?.token || !data?.url) throw new Error('Empty token/url from API')
         if (!cancelled) setConn({ token: data.token, url: data.url })
