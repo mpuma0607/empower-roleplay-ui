@@ -16,7 +16,7 @@ interface RoleplaySessionProps {
 
 export function RoleplaySession({ session, onEndSession, onUpdateSession }: RoleplaySessionProps) {
   const [conn, setConn] = useState<{ token: string; url: string } | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [err, setErr] = useState<string | null>(null)
   const [isConnected, setIsConnected] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
   const [isClientMuted, setIsClientMuted] = useState(false)
@@ -27,7 +27,7 @@ export function RoleplaySession({ session, onEndSession, onUpdateSession }: Role
   
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
-  // unique identity each time to avoid "identity already exists"
+  // unique identity per session to avoid "identity already exists"
   const identity = useMemo(
     () => `agent-${Math.random().toString(36).slice(2, 8)}`,
     []
@@ -48,29 +48,30 @@ export function RoleplaySession({ session, onEndSession, onUpdateSession }: Role
 
   useEffect(() => {
     let cancelled = false
-
     ;(async () => {
-      setError(null)
-      setConn(null)
       try {
+        setErr(null)
+        setConn(null)
         const r = await fetch('/api/token', {
           method: 'POST',
           cache: 'no-store',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ roomName: 'roleplay-session', participantName: identity }),
         })
-        if (!r.ok) {
-          const e = await r.json().catch(() => ({}))
-          throw new Error(`token api ${r.status}: ${e?.error ?? 'unknown'}`)
-        }
-        const { token, url } = (await r.json()) as { token: string; url: string }
-        if (!cancelled) setConn({ token, url })
+        const data = await r.json() // parse ONCE
+        console.log('lk api result', {
+          tokenPrefix: data?.token?.slice(0, 20),
+          url: data?.url,
+        })
+        if (!r.ok) throw new Error(data?.error || `token api ${r.status}`)
+        if (!data?.token || !data?.url) throw new Error('Empty token/url from API')
+        if (cancelled) return
+        setConn({ token: data.token, url: data.url })
       } catch (e: any) {
-        if (!cancelled) setError(e?.message ?? 'Failed to fetch token')
+        if (!cancelled) setErr(e?.message ?? 'Failed to fetch token')
         console.error('token fetch failed', e)
       }
     })()
-
     return () => {
       cancelled = true
     }
@@ -145,12 +146,9 @@ export function RoleplaySession({ session, onEndSession, onUpdateSession }: Role
     }
   }, [isConnected, currentTranscript])
 
-  if (error) {
-    return <div className="p-4 text-red-600">Connection error: {error}</div>
-  }
-  if (!conn) {
-    return <div className="p-4 text-gray-500">Preparing connection…</div>
-  }
+  // SAFETY: never render LiveKitRoom with empty token/url
+  if (err) return <div className="p-4 text-red-600">Connection error: {err}</div>
+  if (!conn) return <div className="p-4 text-gray-500">Preparing connection…</div>
 
   return (
     <LiveKitRoom
