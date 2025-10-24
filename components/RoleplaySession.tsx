@@ -1,5 +1,4 @@
 'use client'
-// CLEAN IMPLEMENTATION - NO LEGACY CONNECTION CODE
 
 import { useEffect, useMemo, useState, useRef } from 'react'
 import { Mic, MicOff, Square, Volume2, VolumeX, RotateCcw } from 'lucide-react'
@@ -50,19 +49,19 @@ export function RoleplaySession({ session, onEndSession, onUpdateSession }: Role
     let cancelled = false
     ;(async () => {
       try {
-        setErr(null)
-        setConn(null)
         const r = await fetch('/api/token', {
           method: 'POST',
           cache: 'no-store',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ roomName: 'roleplay-session', participantName: identity }),
         })
-        const data = await r.json() // parse ONCE
-        console.log('LK token prefix:', data?.token?.slice(0, 20), 'url:', data?.url)
+        const data = await r.json()
+        const token = data?.token ?? data?.accessToken
+        const url = data?.url ?? data?.wsUrl
+        console.log('LK token prefix:', token?.slice(0, 20), 'url:', url)
         if (!r.ok) throw new Error(data?.error || `token api ${r.status}`)
-        if (!data?.token || !data?.url) throw new Error('Empty token/url from API')
-        if (!cancelled) setConn({ token: data.token, url: data.url })
+        if (!token || !url) throw new Error('Empty token/url from API')
+        if (!cancelled) setConn({ token, url })
       } catch (e: any) {
         if (!cancelled) setErr(e?.message ?? 'Failed to fetch token')
         console.error('token fetch failed', e)
