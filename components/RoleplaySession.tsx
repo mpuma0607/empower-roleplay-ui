@@ -1,4 +1,5 @@
 'use client'
+// CLEAN IMPLEMENTATION - NO LEGACY CONNECTION CODE
 
 import { useEffect, useMemo, useState, useRef } from 'react'
 import { Mic, MicOff, Square, Volume2, VolumeX, RotateCcw } from 'lucide-react'
